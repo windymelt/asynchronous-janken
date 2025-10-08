@@ -23,6 +23,7 @@
     },
     "types": [
         "./cloudflare-env.d.ts",
+        "./types/env.d.ts",
         "node"
     ]
   },
