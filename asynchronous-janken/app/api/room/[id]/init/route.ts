@@ -8,8 +8,12 @@ type InitBody = {
   maxParticipants?: number;
 };
 
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  const { id } = params;
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string | string[] | undefined }> }
+) {
+  const { id } = await params;
+  if (!id || Array.isArray(id)) return new Response("Invalid id", { status: 400 });
   const origin = new URL(request.url).origin;
   const url = `${origin}/do/room/${encodeURIComponent(id)}/init`;
 
