@@ -1,4 +1,6 @@
 import type { NextRequest } from "next/server";
+import { parse } from "valibot";
+import { HandSchema } from "@/lib/schemas";
 export const runtime = "edge";
 
 type HandBody = {
@@ -15,18 +17,13 @@ export async function POST(
   const origin = new URL(request.url).origin;
   const url = `${origin}/do/room/${encodeURIComponent(id)}/hand`;
 
-  const body = (await request.json().catch(() => ({}))) as Partial<HandBody>;
-  const userId = body.userId;
-  const value = body.value;
-
-  if (!userId || typeof value !== "number" || !Number.isFinite(value)) {
-    return new Response("Missing or invalid fields", { status: 400 });
+  const raw = (await request.json().catch(() => ({}))) as unknown;
+  let payload: HandBody;
+  try {
+    payload = parse(HandSchema, raw) as HandBody;
+  } catch (e) {
+    return new Response("Invalid payload", { status: 400 });
   }
-  if (!Number.isInteger(value)) {
-    return new Response("Hand must be an integer", { status: 400 });
-  }
-
-  const payload: HandBody = { userId, value } as HandBody;
 
   const res = await fetch(url, {
     method: "POST",

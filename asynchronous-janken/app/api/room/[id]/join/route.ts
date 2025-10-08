@@ -1,4 +1,6 @@
 import type { NextRequest } from "next/server";
+import { parse } from "valibot";
+import { JoinSchema } from "@/lib/schemas";
 export const runtime = "edge";
 
 type JoinBody = {
@@ -15,16 +17,13 @@ export async function POST(
   const origin = new URL(request.url).origin;
   const url = `${origin}/do/room/${encodeURIComponent(id)}/join`;
 
-  const body = (await request.json().catch(() => ({}))) as Partial<JoinBody>;
-  const name = body.name?.trim();
-  const userId = body.userId;
-
-  if (!name || !userId) {
-    return new Response("Missing required fields", { status: 400 });
+  const raw = (await request.json().catch(() => ({}))) as unknown;
+  let payload: JoinBody;
+  try {
+    payload = parse(JoinSchema, raw) as JoinBody;
+  } catch (e) {
+    return new Response("Invalid payload", { status: 400 });
   }
-  if (name.length > 32) return new Response("Name too long", { status: 400 });
-
-  const payload: JoinBody = { name, userId } as JoinBody;
 
   const res = await fetch(url, {
     method: "POST",

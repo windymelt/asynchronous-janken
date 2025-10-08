@@ -1,4 +1,6 @@
 import type { NextRequest } from "next/server";
+import { parse } from "valibot";
+import { RoomInitSchema } from "@/lib/schemas";
 export const runtime = "edge";
 
 type InitBody = {
@@ -17,25 +19,14 @@ export async function POST(
   const origin = new URL(request.url).origin;
   const url = `${origin}/do/room/${encodeURIComponent(id)}/init`;
 
-  const body = (await request.json().catch(() => ({}))) as Partial<InitBody>;
-  const name = body.name?.trim();
-  const creatorId = body.creatorId;
-  const creatorName = body.creatorName?.trim();
-  const maxParticipants = body.maxParticipants;
-
-  if (!name || !creatorId || !creatorName) {
-    return new Response("Missing required fields", { status: 400 });
+  const raw = (await request.json().catch(() => ({}))) as unknown;
+  let payload: InitBody;
+  try {
+    const parsed = parse(RoomInitSchema, raw) as InitBody;
+    payload = parsed;
+  } catch (e) {
+    return new Response("Invalid payload", { status: 400 });
   }
-  if (name.length > 32) return new Response("Room name too long", { status: 400 });
-  if (creatorName.length > 32) return new Response("Creator name too long", { status: 400 });
-  if (
-    maxParticipants !== undefined &&
-    (!Number.isInteger(maxParticipants) || maxParticipants <= 0)
-  ) {
-    return new Response("Invalid maxParticipants", { status: 400 });
-  }
-
-  const payload: InitBody = { name, creatorId, creatorName, maxParticipants } as InitBody;
 
   const res = await fetch(url, {
     method: "POST",
