@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 export const runtime = "edge";
 
 type JoinBody = {
@@ -5,7 +6,7 @@ type JoinBody = {
   userId: string;
 };
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const origin = new URL(request.url).origin;
   const url = `${origin}/do/room/${encodeURIComponent(id)}/join`;
@@ -28,4 +29,3 @@ export async function POST(request: Request, { params }: { params: { id: string 
   });
   return new Response(res.body, { status: res.status, headers: res.headers });
 }
-

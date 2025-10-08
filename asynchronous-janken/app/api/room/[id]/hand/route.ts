@@ -1,3 +1,4 @@
+import type { NextRequest } from "next/server";
 export const runtime = "edge";
 
 type HandBody = {
@@ -5,7 +6,7 @@ type HandBody = {
   value: number; // integer
 };
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   const { id } = params;
   const origin = new URL(request.url).origin;
   const url = `${origin}/do/room/${encodeURIComponent(id)}/hand`;
@@ -30,4 +31,3 @@ export async function POST(request: Request, { params }: { params: { id: string 
   });
   return new Response(res.body, { status: res.status, headers: res.headers });
 }
-
