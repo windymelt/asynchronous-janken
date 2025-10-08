@@ -14,6 +14,7 @@ export interface Room {
   id: RoomId;
   name: string; // max 32 chars
   creatorId: UserId;
+  creatorName: string;
   maxParticipants?: number;
   participants: Participant[];
   hands: Record<UserId, number>;
@@ -37,4 +38,3 @@ export interface CloseEvent {
 }
 
 export type RoomEvent = JoinEvent | PlayHandEvent | CloseEvent;
-

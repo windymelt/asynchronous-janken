@@ -34,21 +34,24 @@ export class RoomDO {
       const body = (await request.json().catch(() => ({}))) as Partial<{
         name: string;
         creatorId: UserId;
+        creatorName: string;
         maxParticipants?: number;
       }>;
-      if (!body.name || !body.creatorId) {
+      if (!body.name || !body.creatorId || !body.creatorName) {
         return new Response("Bad Request", { status: 400 });
       }
       if (body.name.length > 32) return new Response("Name too long", { status: 400 });
+      if (body.creatorName.length > 32) return new Response("Creator name too long", { status: 400 });
       const id = (await this.state.storage.get<Room>("room"))?.id ?? (makeRoomId() as RoomId);
       const now = new Date().toISOString();
       const room: Room = {
         id,
         name: body.name,
         creatorId: body.creatorId,
+        creatorName: body.creatorName,
         maxParticipants: body.maxParticipants,
         participants: [
-          { id: body.creatorId, name: "(creator)", joinedAt: now },
+          { id: body.creatorId, name: body.creatorName, joinedAt: now },
         ],
         hands: {},
         closed: false,
@@ -117,4 +120,3 @@ export class RoomDO {
     return new Response("Not Found", { status: 404 });
   }
 }
-
